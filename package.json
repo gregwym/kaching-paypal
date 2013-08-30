@@ -20,6 +20,7 @@
     "url": "https://github.com/gregwym/kaching-paypal/issues"
   },
   "dependencies": {
+    "debug": "0.7.x",
     "paypal-rest-sdk": "0.6.x"
   }
 }
