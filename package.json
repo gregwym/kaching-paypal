@@ -1,0 +1,25 @@
+{
+  "name": "kaching-paypal",
+  "version": "0.0.1",
+  "description": "Paypal strategy for kaching. Base on Paypal Rest SDK.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/gregwym/kaching-paypal.git"
+  },
+  "keywords": [
+    "kaching",
+    "paypal"
+  ],
+  "author": "Greg Wang <gregwym@qq.com> (http://gregwym.info)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gregwym/kaching-paypal/issues"
+  },
+  "dependencies": {
+    "paypal-rest-sdk": "0.6.x"
+  }
+}
