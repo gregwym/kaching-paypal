@@ -46,10 +46,13 @@ util.inherits(PaypalStrategy, Strategy);
  *
  * @param {Object} payment
  * @param {Object} options
+ * @param {Function} callback
  * @api protected
  */
-PaypalStrategy.prototype.create = function(payment, options) {
+PaypalStrategy.prototype.create = function(payment, options, callback) {
   var self = this;
+  options.redirect = options.redirect || true;
+  options.passToNext = options.passToNext || false;
 
   // Construct payment detail
   var payment_detail = {};
@@ -70,17 +73,37 @@ PaypalStrategy.prototype.create = function(payment, options) {
   transaction.description = payment.description;
 
   // Send create request to paypal
-  debug('Creating paypal payment:' + JSON.stringify(payment_detail));
+  debug('Creating paypal payment:' + JSON.stringify(payment_detail, null, ' '));
   paypal_sdk.payment.create(payment_detail, function(err, payment){
-    if(err){ return self.error(err); }
-    self.session[payment.id] = payment;
-    debug('Paypal payment created: ' + JSON.stringify(payment));
+    // Invoke callback
+    callback(err, payment);
 
-    var approvalUrl = payment.links.reduce(function(prev, cur) {
-      return prev || (cur.rel === 'approval_url' ? cur.href : null);
-    }, null);
-    debug('Redirecting to approval URL: ' + JSON.stringify(approvalUrl));
-    self.redirect(approvalUrl);
+    // Handle error
+    if(err){ return self.error(err); }
+
+    // Store payment in session object
+    self.session[payment.id] = payment;
+    debug('Paypal payment created: ' + JSON.stringify(payment, null, ' '));
+
+    // Perform redirect
+    if (options.redirect) {
+      // Fetch the approval_url, and redirect to let user complete the payment.
+      var approvalUrl = payment.links.reduce(function(prev, cur) {
+        return prev || (cur.rel === 'approval_url' ? cur.href : null);
+      }, null);
+      debug('Redirecting to approval URL: ' + approvalUrl);
+
+      if (approvalUrl) {
+        self.redirect(approvalUrl);
+      } else {
+        return self.error(new Error('Could not find approval_url in payment.links'));
+      }
+    }
+
+    // Pass to next request handler
+    if (options.passToNext) {
+      self.pass();
+    }
   });
 };
 
