@@ -8,13 +8,13 @@
 
 ## Example
 
-Kaching's example uses kaching-paypal. Please refer to: [https://github.com/gregwym/kaching/tree/master/example]().
+Kaching's example uses kaching-paypal. Please refer to: [https://github.com/gregwym/kaching/tree/master/example](https://github.com/gregwym/kaching/tree/master/example).
 
 ## Usage
 
 ### 0. Setup with Kaching
 
-Paypal strategy require the `client_id` and `client_secret` offered by Paypal to operate. You can obtain them from [https://developer.paypal.com/webapps/developer/applications]().
+Paypal strategy require the `client_id` and `client_secret` offered by Paypal to operate. You can obtain them from [https://developer.paypal.com/webapps/developer/applications](https://developer.paypal.com/webapps/developer/applications).
 
 It use `api.sandbox.paypal.com` as the default paypal host address. Feel free to change it in production environment.
 
