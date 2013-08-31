@@ -70,14 +70,6 @@ PaypalStrategy.prototype.create = function(payment, options, callback) {
   transaction.item_list = payment.item_list;
   transaction.description = payment.description;
 
-  // Config default options
-  if (typeof options.redirect !== 'boolean') {
-    options.redirect = payer.payment_method == 'paypal';
-  }
-  if (typeof options.passToNext !== 'boolean') {
-    options.passToNext = payer.payment_method == 'credit_card';
-  }
-
   // Send create request to paypal
   debug('Creating paypal payment:' + JSON.stringify(payment_detail, null, ' '));
   paypal_sdk.payment.create(payment_detail, function(err, payment){
