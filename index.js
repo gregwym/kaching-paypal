@@ -124,9 +124,9 @@ Strategy.prototype.approve = function(payment, options, callback) {
  * @param {Function} callback
  * @api protected
  */
-Strategy.prototype.execute = function(payment, payerId, options, callback) {
+Strategy.prototype.execute = function(payment, options, callback) {
   var self = this;
-  var execute_payment_details = { payer_id: payerId };
+  var execute_payment_details = { payer_id: payment.payer_id };
   paypal_sdk.payment.execute(payment.id, execute_payment_details, function(err, payment){
     // Invoke callback
     callback(err, payment);
