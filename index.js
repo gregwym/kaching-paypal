@@ -91,27 +91,30 @@ PaypalStrategy.prototype.create = function(payment, options, callback) {
     self.session[payment.id] = payment;
     debug('Paypal payment created: ' + JSON.stringify(payment, null, ' '));
 
-    // Perform redirect
-    if (options.redirect) {
-      // Fetch the approval_url, and redirect to let user complete the payment.
-      var approvalUrl = payment.links.reduce(function(prev, cur) {
-        return prev || (cur.rel === 'approval_url' ? cur.href : null);
-      }, null);
-      debug('Redirecting to approval URL: ' + approvalUrl);
-
-      if (approvalUrl) {
-        self.redirect(approvalUrl);
-      } else {
-        return self.error(new Error('Could not find approval_url in payment.links'));
-      }
-    }
-
-    // Pass to next request handler
-    if (options.passToNext) {
-      debug('Passing to next.');
-      self.pass();
-    }
+    self.pass();
   });
 };
+
+/**
+ * Proceed to approval process.
+ *
+ * @param {Object} payment
+ * @param {Object} options
+ * @param {Function} callback
+ * @api protected
+ */
+Strategy.prototype.approve = function(payment, options, callback) {
+  // Fetch the approval_url, and redirect to let user complete the payment.
+  var approvalUrl = payment.links.reduce(function(prev, cur) {
+    return prev || (cur.rel === 'approval_url' ? cur.href : null);
+  }, null);
+
+  if (approvalUrl) {
+    this.redirect(approvalUrl);
+  } else {
+    return this.error(new Error('Could not find approval_url in payment.links'));
+  }
+};
+
 
 module.exports = exports = PaypalStrategy;
