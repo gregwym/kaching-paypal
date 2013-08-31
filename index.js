@@ -42,7 +42,7 @@ util.inherits(PaypalStrategy, Strategy);
  *       return_url: 'http://localhost:3000/kaching/paypal/return',
  *       cancel_url: 'http://localhost:3000/kaching/paypal/cancel'
  *     }
- *   }));
+ *   }), function(req, res) { res.json(req.payment); });
  *
  * @param {Object} payment
  * @param {Object} options
@@ -88,7 +88,7 @@ PaypalStrategy.prototype.create = function(payment, options, callback) {
     if(err){ return self.error(err); }
 
     // Store payment in session object
-    self.session[payment.id] = payment;
+    // self.session[payment.id] = payment;
     debug('Paypal payment created: ' + JSON.stringify(payment, null, ' '));
 
     self.pass();
@@ -135,7 +135,7 @@ Strategy.prototype.execute = function(payment, options, callback) {
     if(err){ return self.error(err); }
 
     // Store payment in session object
-    self.session[payment.id] = payment;
+    // self.session[payment.id] = payment;
     debug('Paypal payment executed: ' + JSON.stringify(payment, null, ' '));
 
     self.pass();
