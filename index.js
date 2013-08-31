@@ -51,8 +51,6 @@ util.inherits(PaypalStrategy, Strategy);
  */
 PaypalStrategy.prototype.create = function(payment, options, callback) {
   var self = this;
-  options.redirect = options.redirect || true;
-  options.passToNext = options.passToNext || false;
 
   // Construct payment detail
   var payment_detail = {};
@@ -71,6 +69,14 @@ PaypalStrategy.prototype.create = function(payment, options, callback) {
   transaction.amount = payment.amount;
   transaction.item_list = payment.item_list;
   transaction.description = payment.description;
+
+  // Config default options
+  if (typeof options.redirect !== 'boolean') {
+    options.redirect = payer.payment_method == 'paypal';
+  }
+  if (typeof options.passToNext !== 'boolean') {
+    options.passToNext = payer.payment_method == 'credit_card';
+  }
 
   // Send create request to paypal
   debug('Creating paypal payment:' + JSON.stringify(payment_detail, null, ' '));
@@ -102,6 +108,7 @@ PaypalStrategy.prototype.create = function(payment, options, callback) {
 
     // Pass to next request handler
     if (options.passToNext) {
+      debug('Passing to next.');
       self.pass();
     }
   });
