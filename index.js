@@ -116,5 +116,31 @@ Strategy.prototype.approve = function(payment, options, callback) {
   }
 };
 
+/**
+ * Execute an approved payment.
+ *
+ * @param {Object} payment
+ * @param {Object} options
+ * @param {Function} callback
+ * @api protected
+ */
+Strategy.prototype.execute = function(payment, payerId, options, callback) {
+  var self = this;
+  var execute_payment_details = { payer_id: payerId };
+  paypal_sdk.payment.execute(payment.id, execute_payment_details, function(err, payment){
+    // Invoke callback
+    callback(err, payment);
+
+    // Handle error
+    if(err){ return self.error(err); }
+
+    // Store payment in session object
+    self.session[payment.id] = payment;
+    debug('Paypal payment executed: ' + JSON.stringify(payment, null, ' '));
+
+    self.pass();
+  });
+};
+
 
 module.exports = exports = PaypalStrategy;
