@@ -35,28 +35,32 @@ The payment detail should be setup and saved in `req.payment` prior invoking the
 
 After kaching created the pending payment, it replaces `req.payment` with the real payment object that was returned from Paypal API. Save it securely. (i.e., together with the user's order.)
 
-	app.get('/kaching/paypal', function(req, res, next) {
+	app.get('...', function(req, res, next) {
 	  // Setup payment detail in `req.payment`.
 	  req.payment = {
 	    amount:{
 	      total:'7.47',
 	      currency:'USD'
 	    },
+	    redirect_urls: {
+	      return_url: 'http://<return_url>',
+	      cancel_url: 'http://<cancel_url>'
+	    },
 	    description:'Kaching paypal test transaction'
 	  };
 	  next();
 	}, kaching.create('paypal', {
-	  redirect_urls: {
-	    return_url: 'http://<return_url>',
-	    cancel_url: 'http://<cancel_url>'
-	  }
-	}), function(req, res) { res.json(req.payment); });
+	  // Optional options
+	}), function(req, res) {
+	  // Now `req.payment` is the Paypal returned payment object
+	  res.json(req.payment);
+	});
 
 ### 2. Redirect user to Paypal to approve the payment
 
 For most of the time, user should redirect to Paypal to complete the payment right away. You can find the page url in `payment.links` and do whatever you want.
 
-Or simpler, replace the last request handler with `kaching.approve` middleware.
+Or simpler, append the `kaching.approve` middleware after the last request handler. It will redirect the user to the payment approval page. 
 
 	app.get('...', function(req, res, next) {
 	  ...
@@ -67,11 +71,11 @@ Or simpler, replace the last request handler with `kaching.approve` middleware.
 	  next();
 	}, kaching.approve('paypal'));
 
-If you want to use `kaching.approve` somewhere else, make sure it can read the payment object from `req.payment`.
+If you want to use `kaching.approve` somewhere else, make sure `req.payment` contain a valid payment object.
 
 ### 3. Execute the approved payment to complete the transaction
 
-User will be redirect to `return_url` once the payment has been approved. `payer_id` will be specified in `req.query.PayerID`. It is required to execute and complete the payment, so save it securely.
+User will be redirect to `return_url` once the payment has been approved. Paypal will specify the `payer_id` in `req.query.PayerID`. This piece of information is required to execute and complete the payment, so save it securely.
 
 Commonly, execute the payment right after can save many trouble. Here is an example,
 
@@ -84,7 +88,11 @@ Commonly, execute the payment right after can save many trouble. Here is an exam
 	  res.json(req.payment);       // Now the payment has been completed.
 	});
 
+Like `kaching.create`, `kaching.execute` will update `req.payment` to the latest. And it's up to you to deal with it.
+
 ## API
+
+Note: all the middleware look for the payment informations in `req.payment`. Make sure it is set before passing control to a middleware. 
 
 ### PaypalStrategy(options)
 
@@ -99,11 +107,13 @@ Construct a new `strategy`.
 
 ### PaypalStrategy#create
 
-Build the payment creation middleware. Use `req.payment` as the payment_detail skeleton.
+Build the payment creation middleware. 
+
+It use `req.payment` as the payment_detail skeleton.
 
 	req.payment = {
-	  intent: '<sale | authorize>',             // default: sale
-	  payment_method: '<paypal | credit_card>', // default: paypal
+	  intent: '[sale | authorize]',             // default: sale
+	  payment_method: '[paypal | credit_card]', // default: paypal
 	  funding_instruments: {                    // required when payment_method = credit_card
 	    ...   // https://developer.paypal.com/webapps/developer/docs/api/#fundinginstrument-object
 	  },
@@ -120,6 +130,18 @@ Build the payment creation middleware. Use `req.payment` as the payment_detail s
 	  }
 	};
 
+You may notice that, things like `intent`, `payment_method` and `redirect_urls` are not necessarily be different for each payment. You can set the default value for them when building the middleware. 
+
+	...
+	}, kaching.create('paypal', {
+	  intent: 'sale',
+	  payment_method: 'paypal',
+	  redirect_urls: { ... } 
+	}), 
+	...
+
+Then you can omit these fields in `req.payment`.
+
 ### PaypalStrategy#approve
 
 Build the payment approval middleware. Mainly redirect to the `approval_url` in `payment.links`.
@@ -127,3 +149,13 @@ Build the payment approval middleware. Mainly redirect to the `approval_url` in 
 ### PaypalStrategy#execute
 
 Build the approved payment execution middleware. The middleware find the payment in `req.payment` and execute it with `req.payment.payer_id`.
+
+## Credits
+
+* [Greg Wang](https://github.com/gregwym)
+
+## License
+
+[The MIT License](http://opensource.org/licenses/MIT)
+
+Copyright (c) 2013 Greg Wang [http://gregwym.info/](http://gregwym.info/)
